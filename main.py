@@ -33,7 +33,7 @@ template = env.get_template("invoice_report.html")
 
 template_vars = {"title": "Sales Funnel Report - National",
                  "invoice_data": table.to_html()}
-html_out = template.render(template_vars)
+html_out = template.render(template_vars).replace('valign="top"', 'valign="middle"')
 print(html_out)
 
 pisa.showLogging()

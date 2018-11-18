@@ -25,7 +25,12 @@ df['duration_hours'] = df['duration_seconds'].apply(lambda x: float(x) / 3600)
 df['hourly_rate'] = 35.0
 df['total'] = df['duration_hours'] * df['hourly_rate']
 table = pd.pivot_table(df, index=["project", "start_time"], values=['duration_hours', 'hourly_rate', 'total'],
-                       aggfunc=np.sum, margins=True)
+                       aggfunc={
+                           'duration_hours': np.sum,
+                           'hourly_rate': np.mean,
+                           'total': np.sum
+                       },
+                       margins=True, margins_name='Total')
 print(table)
 
 env = Environment(loader=FileSystemLoader('.'))
@@ -33,7 +38,33 @@ template = env.get_template("invoice_report.html")
 
 template_vars = {"title": "Sales Funnel Report - National",
                  "invoice_data": table.to_html()}
-html_out = template.render(template_vars).replace('valign="top"', 'valign="middle"')
+html_out = template.render(template_vars) \
+    .replace('valign="top"', 'valign="middle"') \
+    .replace('  <thead>\n' +
+             '    <tr style="text-align: right;">\n' +
+             '      <th></th>\n' +
+             '      <th></th>\n' +
+             '      <th>duration_hours</th>\n' +
+             '      <th>hourly_rate</th>\n' +
+             '      <th>total</th>\n' +
+             '    </tr>\n' +
+             '    <tr>\n' +
+             '      <th>project</th>\n' +
+             '      <th>start_time</th>\n' +
+             '      <th></th>\n' +
+             '      <th></th>\n' +
+             '      <th></th>\n' +
+             '    </tr>\n' +
+             '  </thead>',
+             '  <thead>\n' +
+             '     <tr style="text-align: right;">\n' +
+             '       <th>Project</th>\n' +
+             '       <th>Date</th>\n' +
+             '       <th>Hours Worked</th>\n' +
+             '       <th>Hourly Rate</th>\n' +
+             '       <th>Total</th>\n' +
+             '     </tr>\n' +
+             '  </thead>')
 print(html_out)
 
 pisa.showLogging()
